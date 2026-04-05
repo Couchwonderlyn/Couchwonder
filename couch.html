@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wiggly Web 🕷️🐘</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sky: #b8e4f9;
+    --sky2: #ddf3ff;
+    --grass: #7ec850;
+    --grass2: #5aad2e;
+    --purple: #8b5cf6;
+    --pink: #f472b6;
+    --yellow: #fbbf24;
+    --orange: #fb923c;
+    --white: #fff;
+    --web: rgba(255,255,255,0.85);
+  }
+
+- { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+font-family: ‘Nunito’, sans-serif;
+background: linear-gradient(180deg, #a8d8f0 0%, #c9ecff 40%, #b8e4f9 70%, #7ec850 70%, #5aad2e 100%);
+min-height: 100vh;
+overflow: hidden;
+user-select: none;
+}
+
+/* STARS in bg */
+.star {
+position: fixed;
+width: 6px; height: 6px;
+border-radius: 50%;
+background: rgba(255,255,255,0.6);
+animation: twinkle 3s infinite alternate;
+}
+
+@keyframes twinkle {
+from { opacity: 0.2; transform: scale(0.8); }
+to   { opacity: 0.8; transform: scale(1.2); }
+}
+
+/* CLOUDS */
+.cloud {
+position: fixed;
+background: white;
+border-radius: 50px;
+opacity: 0.85;
+animation: drift linear infinite;
+}
+.cloud::before, .cloud::after {
+content: ‘’;
+position: absolute;
+background: white;
+border-radius: 50%;
+}
+
+@keyframes drift {
+from { transform: translateX(-200px); }
+to   { transform: translateX(110vw); }
+}
+
+/* TITLE */
+#titleBar {
+position: fixed;
+top: 0; left: 0; right: 0;
+display: flex;
+align-items: center;
+justify-content: space-between;
+padding: 0.6rem 1.4rem;
+z-index: 100;
+background: rgba(255,255,255,0.25);
+backdrop-filter: blur(6px);
+border-bottom: 2px solid rgba(255,255,255,0.4);
+}
+
+.title-text {
+font-family: ‘Fredoka One’, cursive;
+font-size: clamp(1.4rem, 4vw, 2rem);
+color: var(–purple);
+text-shadow: 2px 2px 0 rgba(255,255,255,0.6);
+letter-spacing: 0.03em;
+}
+
+.title-text span { color: var(–pink); }
+
+.counter-badge {
+background: var(–purple);
+color: white;
+font-family: ‘Fredoka One’, cursive;
+font-size: 1rem;
+padding: 0.35rem 1rem;
+border-radius: 999px;
+box-shadow: 0 3px 10px rgba(139,92,246,0.4);
+letter-spacing: 0.05em;
+}
+
+.music-btn {
+background: var(–pink);
+border: none;
+color: white;
+font-size: 1.1rem;
+width: 38px; height: 38px;
+border-radius: 50%;
+cursor: pointer;
+box-shadow: 0 3px 10px rgba(244,114,182,0.4);
+transition: transform 0.15s;
+display: flex; align-items: center; justify-content: center;
+}
+
+.music-btn:hover { transform: scale(1.1); }
+
+/* SCENE */
+#scene {
+position: fixed;
+inset: 0;
+display: flex;
+align-items: flex-start;
+justify-content: center;
+}
+
+/* TREE + WEB anchor */
+#treeLeft, #treeRight {
+position: fixed;
+bottom: 30%;
+font-size: clamp(4rem, 10vw, 7rem);
+filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.15));
+z-index: 5;
+}
+
+#treeLeft  { left: clamp(10px, 5vw, 60px); }
+#treeRight { right: clamp(10px, 5vw, 60px); }
+
+/* CANVAS */
+#webCanvas {
+position: fixed;
+top: 0; left: 0;
+width: 100%; height: 100%;
+pointer-events: none;
+z-index: 10;
+}
+
+/* SWING GROUP */
+#swingGroup {
+position: fixed;
+top: 42%;
+left: 50%;
+transform: translateX(-50%);
+display: flex;
+flex-direction: column;
+align-items: center;
+z-index: 20;
+transform-origin: top center;
+animation: swing 3s ease-in-out infinite;
+}
+
+@keyframes swing {
+0%   { transform: translateX(-50%) rotate(-8deg); }
+50%  { transform: translateX(-50%) rotate(8deg); }
+100% { transform: translateX(-50%) rotate(-8deg); }
+}
+
+/* ── PARK SWING ── */
+#swingStructure {
+display: flex;
+flex-direction: column;
+align-items: center;
+position: relative;
+}
+
+#topBar {
+width: clamp(180px, 44vw, 340px);
+height: 16px;
+background: linear-gradient(180deg, #c0392b 0%, #96281b 60%, #7b1e12 100%);
+border-radius: 8px;
+box-shadow: 0 4px 12px rgba(0,0,0,0.35), inset 0 2px 0 rgba(255,120,100,0.3);
+position: relative;
+flex-shrink: 0;
+z-index: 2;
+}
+
+#topBar::before, #topBar::after {
+content: ‘’;
+position: absolute;
+top: -4px;
+width: 20px; height: 24px;
+background: #7b1e12;
+border-radius: 4px;
+box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+#topBar::before { left: -2px; }
+#topBar::after  { right: -2px; }
+
+#chainsAndSeat {
+display: flex;
+flex-direction: column;
+align-items: center;
+position: relative;
+width: clamp(140px, 34vw, 260px);
+}
+
+#chains {
+display: flex;
+justify-content: space-between;
+width: 100%;
+height: clamp(90px, 18vw, 140px);
+position: relative;
+}
+
+.chain {
+width: 8px;
+height: 100%;
+display: flex;
+flex-direction: column;
+align-items: center;
+}
+
+.chain-link {
+width: 7px;
+height: 10px;
+border: 2.5px solid #888;
+border-radius: 3px;
+background: linear-gradient(90deg, #bbb, #777, #bbb);
+flex-shrink: 0;
+margin-bottom: 1px;
+box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+.chain-link:nth-child(even) {
+transform: rotate(90deg);
+border-color: #999;
+background: linear-gradient(0deg, #ccc, #888, #ccc);
+}
+
+#swingBoard {
+width: clamp(140px, 34vw, 260px);
+height: clamp(18px, 3vw, 26px);
+background-image:
+repeating-linear-gradient(90deg, transparent, transparent 12px, rgba(255,255,255,0.04) 12px, rgba(255,255,255,0.04) 14px),
+linear-gradient(180deg, #333 0%, #1a1a1a 60%, #111 100%);
+border-radius: 4px 4px 6px 6px;
+box-shadow: 0 6px 18px rgba(0,0,0,0.5), inset 0 2px 0 rgba(255,255,255,0.08);
+position: relative;
+flex-shrink: 0;
+}
+
+#swingBoard::before, #swingBoard::after {
+content: ‘’;
+position: absolute;
+top: -6px;
+width: 10px; height: 12px;
+background: #666;
+border-radius: 3px 3px 0 0;
+}
+#swingBoard::before { left: 6px; }
+#swingBoard::after  { right: 6px; }
+
+/* ELEPHANTS sit on top of the seat */
+#elephantRow {
+display: flex;
+align-items: flex-end;
+justify-content: center;
+gap: 1px;
+position: absolute;
+bottom: 100%;
+left: -40px; right: -40px;
+flex-wrap: nowrap;
+padding-bottom: 0px;
+}
+
+.eleph {
+font-size: clamp(1.2rem, 4vw, 2.2rem);
+line-height: 1;
+animation: elephBounce 0.6s ease-in-out infinite alternate;
+filter: drop-shadow(1px 2px 3px rgba(0,0,0,0.2));
+flex-shrink: 0;
+}
+
+.eleph:nth-child(odd)  { animation-delay: 0.1s; }
+.eleph:nth-child(even) { animation-delay: 0.3s; }
+
+@keyframes elephBounce {
+from { transform: translateY(0) scale(1); }
+to   { transform: translateY(-4px) scale(1.04); }
+}
+
+/* SWAY grows with weight */
+.heavy { animation: swingHeavy 1.8s ease-in-out infinite !important; }
+@keyframes swingHeavy {
+0%   { transform: translateX(-50%) rotate(-14deg); }
+50%  { transform: translateX(-50%) rotate(14deg); }
+100% { transform: translateX(-50%) rotate(-14deg); }
+}
+
+/* ADD BUTTON */
+#addBtn {
+position: fixed;
+bottom: 2.5rem;
+left: 50%;
+transform: translateX(-50%);
+background: linear-gradient(135deg, var(–purple), var(–pink));
+color: white;
+font-family: ‘Fredoka One’, cursive;
+font-size: clamp(1rem, 3vw, 1.3rem);
+padding: 0.9rem 2.5rem;
+border: none;
+border-radius: 999px;
+cursor: pointer;
+box-shadow: 0 6px 24px rgba(139,92,246,0.5);
+z-index: 200;
+transition: transform 0.15s, box-shadow 0.15s;
+letter-spacing: 0.05em;
+animation: pulseBtn 2s infinite;
+}
+
+@keyframes pulseBtn {
+0%, 100% { box-shadow: 0 6px 24px rgba(139,92,246,0.5); }
+50%       { box-shadow: 0 6px 36px rgba(244,114,182,0.7); }
+}
+
+#addBtn:hover { transform: translateX(-50%) scale(1.06); }
+#addBtn:active { transform: translateX(-50%) scale(0.97); }
+
+/* CRACK WARNING */
+#crackWarning {
+position: fixed;
+top: 5rem;
+left: 50%;
+transform: translateX(-50%);
+background: var(–orange);
+color: white;
+font-family: ‘Fredoka One’, cursive;
+font-size: 1.1rem;
+padding: 0.5rem 1.4rem;
+border-radius: 999px;
+z-index: 300;
+opacity: 0;
+transition: opacity 0.3s;
+white-space: nowrap;
+letter-spacing: 0.04em;
+}
+
+#crackWarning.show { opacity: 1; }
+
+/* BREAK SCREEN */
+#breakScreen {
+display: none;
+position: fixed;
+inset: 0;
+background: rgba(0,0,0,0.6);
+backdrop-filter: blur(4px);
+z-index: 500;
+align-items: center;
+justify-content: center;
+flex-direction: column;
+gap: 1rem;
+text-align: center;
+padding: 2rem;
+}
+
+#breakScreen.show { display: flex; animation: fadeIn 0.4s ease; }
+
+@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+
+.break-emoji { font-size: clamp(4rem, 15vw, 7rem); animation: spin 0.6s ease; }
+@keyframes spin { from { transform: rotate(0) scale(0.5); } to { transform: rotate(720deg) scale(1); } }
+
+.break-title {
+font-family: ‘Fredoka One’, cursive;
+font-size: clamp(1.8rem, 6vw, 3.2rem);
+color: white;
+text-shadow: 2px 3px 0 rgba(0,0,0,0.3);
+}
+
+.break-sub {
+font-size: clamp(1rem, 3vw, 1.4rem);
+color: rgba(255,255,255,0.9);
+font-weight: 600;
+}
+
+.play-again {
+margin-top: 0.5rem;
+background: var(–yellow);
+color: #5a3e00;
+font-family: ‘Fredoka One’, cursive;
+font-size: 1.2rem;
+padding: 0.9rem 2.4rem;
+border: none;
+border-radius: 999px;
+cursor: pointer;
+box-shadow: 0 4px 16px rgba(251,191,36,0.5);
+transition: transform 0.15s;
+letter-spacing: 0.05em;
+}
+
+.play-again:hover { transform: scale(1.08); }
+
+/* FALLING elephants on break */
+.falling-eleph {
+position: fixed;
+font-size: clamp(1.5rem, 5vw, 3rem);
+z-index: 490;
+animation: fall linear forwards;
+pointer-events: none;
+}
+
+@keyframes fall {
+0%   { transform: translateY(0) rotate(0deg); opacity:1; }
+100% { transform: translateY(110vh) rotate(720deg); opacity:0; }
+}
+
+/* GRASS blades */
+.grass-blade {
+position: fixed;
+bottom: 0;
+font-size: clamp(1.5rem, 4vw, 2.5rem);
+z-index: 2;
+}
+
+/* SPIDER */
+#spider {
+position: fixed;
+font-size: clamp(1.2rem, 3vw, 2rem);
+z-index: 15;
+animation: spiderDangle 4s ease-in-out infinite;
+left: 50%;
+}
+
+@keyframes spiderDangle {
+0%, 100% { transform: translateX(-50%) translateY(0); }
+50%       { transform: translateX(-50%) translateY(12px); }
+}
+</style>
+
+</head>
+<body>
+
+<!-- TITLE BAR -->
+
+<div id="titleBar">
+  <div class="title-text">Wiggly <span>Web</span> 🕷️</div>
+  <div class="counter-badge" id="counterBadge">🐘 1 elephant</div>
+  <button class="music-btn" id="musicBtn" title="Toggle music">🎵</button>
+</div>
+
+<!-- CANVAS for web threads -->
+
+<canvas id="webCanvas"></canvas>
+
+<!-- SCENE -->
+
+<div id="treeLeft">🌳</div>
+<div id="treeRight">🌳</div>
+<div id="spider">🕷️</div>
+
+<div id="swingGroup">
+  <div id="swingStructure">
+    <div id="topBar"></div>
+    <div id="chainsAndSeat">
+      <div id="chains">
+        <div class="chain" id="chainLeft"></div>
+        <div class="chain" id="chainRight"></div>
+      </div>
+      <div id="swingBoard">
+        <div id="elephantRow"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="crackWarning">⚠️ The web is cracking…!</div>
+
+<button id="addBtn" onclick="addElephant()">🐘 Add Another Elephant!</button>
+
+<!-- BREAK SCREEN -->
+
+<div id="breakScreen">
+  <div class="break-emoji" id="breakEmoji">💥</div>
+  <div class="break-title" id="breakTitle">SNAP!</div>
+  <div class="break-sub" id="breakSub">The web couldn't hold!</div>
+  <button class="play-again" onclick="resetGame()">🔄 Play Again!</button>
+</div>
+
+<script>
+// ── GAME STATE ──
+let elephantCount = 1;
+let breakThreshold = 0;
+let broken = false;
+let musicOn = true;
+let audioCtx = null;
+let musicInterval = null;
+let noteIndex = 0;
+
+// Pick random break threshold between 3 and 8
+function newBreakThreshold() {
+  return Math.floor(Math.random() * 6) + 3;
+}
+
+breakThreshold = newBreakThreshold();
+
+// ── MUSIC (Web Audio API) ──
+// "One Elephant Balancing" inspired melody, playful & bouncy
+const melody = [
+  // Notes: [frequency, duration_ms]
+  [523, 200], [523, 200], [659, 200], [523, 200], [784, 400],
+  [698, 200], [698, 200], [784, 200], [698, 200], [659, 400],
+  [587, 200], [587, 200], [659, 200], [587, 200], [523, 400],
+  [440, 200], [494, 200], [523, 200], [587, 200], [659, 600],
+  [784, 200], [784, 200], [880, 200], [784, 200], [698, 400],
+  [659, 200], [659, 200], [698, 200], [659, 200], [587, 400],
+  [523, 200], [587, 200], [659, 200], [698, 200], [784, 600],
+  [659, 200], [587, 200], [523, 200], [494, 200], [523, 600],
+];
+
+function initAudio() {
+  if (audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+
+function playNote(freq, duration) {
+  if (!audioCtx || !musicOn) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.type = 'sine';
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration / 1000);
+  osc.start(audioCtx.currentTime);
+  osc.stop(audioCtx.currentTime + duration / 1000);
+
+  // Second harmonic for richness
+  const osc2 = audioCtx.createOscillator();
+  const gain2 = audioCtx.createGain();
+  osc2.connect(gain2);
+  gain2.connect(audioCtx.destination);
+  osc2.type = 'triangle';
+  osc2.frequency.value = freq * 1.5;
+  gain2.gain.setValueAtTime(0.07, audioCtx.currentTime);
+  gain2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration / 1000 * 0.8);
+  osc2.start(audioCtx.currentTime);
+  osc2.stop(audioCtx.currentTime + duration / 1000 * 0.8);
+}
+
+function startMusic() {
+  if (musicInterval) return;
+  let i = 0;
+  function tick() {
+    if (!musicOn || broken) return;
+    const [freq, dur] = melody[i % melody.length];
+    playNote(freq, dur);
+    i++;
+    musicInterval = setTimeout(tick, dur + 30);
+  }
+  tick();
+}
+
+function stopMusic() {
+  if (musicInterval) { clearTimeout(musicInterval); musicInterval = null; }
+}
+
+function playBreakSound() {
+  if (!audioCtx) return;
+  // descending crash
+  const freqs = [880, 660, 440, 220, 110];
+  freqs.forEach((f, i) => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.type = 'sawtooth';
+    osc.frequency.value = f;
+    gain.gain.setValueAtTime(0.25, audioCtx.currentTime + i * 0.08);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + i * 0.08 + 0.4);
+    osc.start(audioCtx.currentTime + i * 0.08);
+    osc.stop(audioCtx.currentTime + i * 0.08 + 0.4);
+  });
+}
+
+document.getElementById('musicBtn').addEventListener('click', () => {
+  initAudio();
+  musicOn = !musicOn;
+  document.getElementById('musicBtn').textContent = musicOn ? '🎵' : '🔇';
+  if (musicOn) startMusic(); else stopMusic();
+});
+
+// ── WEB CANVAS ──
+const canvas = document.getElementById('webCanvas');
+const ctx = canvas.getContext('2d');
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  drawWeb();
+}
+
+function drawWeb() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (broken) return;
+
+  const cx = canvas.width / 2;
+  const swingTop = canvas.height * 0.13;
+  const boardY = getSwingBoardY();
+
+  // Left and right tree anchor points
+  const leftX = canvas.width * 0.08;
+  const rightX = canvas.width * 0.92;
+  const treeY = canvas.height * 0.38;
+
+  // Crack factor 0..1
+  const crackFactor = Math.max(0, (elephantCount - Math.floor(breakThreshold * 0.6)) / (breakThreshold * 0.4));
+
+  // Web threads from trees to board corners
+  const threads = [
+    { x1: leftX,  y1: treeY, x2: cx - 80, y2: boardY },
+    { x1: rightX, y1: treeY, x2: cx + 80, y2: boardY },
+    { x1: leftX,  y1: treeY - 30, x2: cx, y2: swingTop },
+    { x1: rightX, y1: treeY - 30, x2: cx, y2: swingTop },
+    { x1: cx,     y1: swingTop, x2: cx - 80, y2: boardY },
+    { x1: cx,     y1: swingTop, x2: cx + 80, y2: boardY },
+  ];
+
+  threads.forEach((t, idx) => {
+    ctx.beginPath();
+    ctx.moveTo(t.x1, t.y1);
+
+    // Add sag / droop
+    const midX = (t.x1 + t.x2) / 2;
+    const midY = (t.y1 + t.y2) / 2 + 20 + elephantCount * 6;
+
+    if (crackFactor > 0 && idx < 4) {
+      // Draw broken / jagged threads
+      const segments = 6;
+      ctx.moveTo(t.x1, t.y1);
+      for (let s = 1; s <= segments; s++) {
+        const prog = s / segments;
+        const jitter = crackFactor * (Math.random() * 14 - 7);
+        const sx = t.x1 + (t.x2 - t.x1) * prog + jitter;
+        const sy = t.y1 + (t.y2 - t.y1) * prog + midY * 0.05 * Math.sin(prog * Math.PI) + jitter * 0.5;
+        ctx.lineTo(sx, sy);
+      }
+    } else {
+      ctx.quadraticCurveTo(midX, midY, t.x2, t.y2);
+    }
+
+    const alpha = crackFactor > 0.5 ? 0.4 + (1 - crackFactor) * 0.5 : 0.8;
+    ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
+    ctx.lineWidth = crackFactor > 0 ? Math.max(0.5, 2 - crackFactor * 1.5) : 1.8;
+    if (idx >= 4) { ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 1; }
+    ctx.stroke();
+  });
+
+  // Extra decorative web radials at top
+  for (let a = -60; a <= 60; a += 20) {
+    const rad = (a * Math.PI) / 180;
+    const ex = cx + Math.sin(rad) * canvas.width * 0.35;
+    const ey = swingTop - Math.cos(rad) * canvas.height * 0.2;
+    ctx.beginPath();
+    ctx.moveTo(cx, swingTop);
+    ctx.lineTo(ex, ey);
+    ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+  }
+
+  // Horizontal web spirals at top
+  for (let r = 30; r < 180; r += 35) {
+    ctx.beginPath();
+    ctx.arc(cx, swingTop, r, (Math.PI * 1.1), (Math.PI * 1.9));
+    ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+    ctx.lineWidth = 0.7;
+    ctx.stroke();
+  }
+}
+
+function getSwingBoardY() {
+  const sg = document.getElementById('swingGroup');
+  const rect = sg.getBoundingClientRect();
+  return rect.top + (rect.height / 2);
+}
+
+// ── RENDER ELEPHANTS ──
+function renderElephants() {
+  const row = document.getElementById('elephantRow');
+  row.innerHTML = '';
+  for (let i = 0; i < elephantCount; i++) {
+    const e = document.createElement('div');
+    e.className = 'eleph';
+    // Shrink emoji as more added
+    const size = Math.max(0.9, 2.2 - (elephantCount - 1) * 0.18);
+    e.style.fontSize = `${size}rem`;
+    e.textContent = '🐘';
+    row.appendChild(e);
+  }
+
+  // Widen board visually
+  const board = document.getElementById('swingBoard');
+  const w = Math.min(90, 40 + elephantCount * 8);
+  board.style.width = `${w}vw`;
+  board.style.maxWidth = '480px';
+
+  // Sway speed increases with weight
+  const sg = document.getElementById('swingGroup');
+  if (elephantCount >= Math.floor(breakThreshold * 0.6)) {
+    sg.classList.add('heavy');
+  } else {
+    sg.classList.remove('heavy');
+  }
+
+  // Counter badge
+  const badge = document.getElementById('counterBadge');
+  badge.textContent = `🐘 ${elephantCount} elephant${elephantCount !== 1 ? 's' : ''}`;
+
+  // Crack warning
+  const warning = document.getElementById('crackWarning');
+  const danger = elephantCount >= Math.floor(breakThreshold * 0.7);
+  warning.classList.toggle('show', danger);
+  if (danger) {
+    warning.textContent = elephantCount >= breakThreshold - 1
+      ? '🚨 ONE MORE AND IT SNAPS!!!'
+      : '⚠️ The web is cracking…!';
+  }
+
+  drawWeb();
+}
+
+// ── ADD ELEPHANT ──
+function addElephant() {
+  if (broken) return;
+  initAudio();
+  startMusic();
+
+  elephantCount++;
+  renderElephants();
+
+  // Fun "boing" sound
+  if (audioCtx && musicOn) {
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    o.type = 'sine';
+    o.frequency.setValueAtTime(400, audioCtx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.3);
+    g.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+    o.start(audioCtx.currentTime);
+    o.stop(audioCtx.currentTime + 0.3);
+  }
+
+  if (elephantCount >= breakThreshold) {
+    setTimeout(breakWeb, 600);
+  }
+}
+
+// ── BREAK THE WEB ──
+function breakWeb() {
+  broken = true;
+  stopMusic();
+  if (audioCtx) playBreakSound();
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Scatter falling elephants
+  for (let i = 0; i < elephantCount; i++) {
+    const el = document.createElement('div');
+    el.className = 'falling-eleph';
+    el.textContent = '🐘';
+    el.style.left = (10 + Math.random() * 80) + 'vw';
+    el.style.top = (20 + Math.random() * 40) + 'vh';
+    const dur = 1.5 + Math.random() * 1.5;
+    el.style.animation = `fall ${dur}s ease-in forwards`;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), dur * 1000 + 100);
+  }
+
+  // Hide swing
+  document.getElementById('swingGroup').style.display = 'none';
+  document.getElementById('addBtn').style.display = 'none';
+  document.getElementById('crackWarning').classList.remove('show');
+
+  const screen = document.getElementById('breakScreen');
+  const msgs = [
+    ['💥', 'SNAP!', `${elephantCount} elephants was too many! 😅`],
+    ['🕸️', 'OH SNAP!', `The web said "no more"! ${elephantCount} is the limit! 😂`],
+    ['😱', 'WHOOOPS!', `${elephantCount} chonky elephants broke the web! 🐘`],
+    ['🌪️', 'TIMBER!', `Even spider silk has limits! (${elephantCount} elephants!) 🕷️`],
+    ['🎉', 'KABOOM!', `${elephantCount} elephants — what did you expect?! 😄`],
+  ];
+  const [emoji, title, sub] = msgs[Math.floor(Math.random() * msgs.length)];
+  document.getElementById('breakEmoji').textContent = emoji;
+  document.getElementById('breakTitle').textContent = title;
+  document.getElementById('breakSub').textContent = sub;
+
+  screen.classList.add('show');
+}
+
+// ── RESET ──
+function resetGame() {
+  broken = false;
+  elephantCount = 1;
+  breakThreshold = newBreakThreshold();
+  noteIndex = 0;
+
+  document.getElementById('breakScreen').classList.remove('show');
+  document.getElementById('swingGroup').style.display = 'flex';
+  document.getElementById('addBtn').style.display = 'block';
+  document.getElementById('crackWarning').classList.remove('show');
+
+  renderElephants();
+  buildChains();
+  stopMusic();
+  musicInterval = null;
+  if (musicOn) startMusic();
+}
+
+// ── CLOUDS ──
+function makeCloud() {
+  const c = document.createElement('div');
+  c.className = 'cloud';
+  const w = 80 + Math.random() * 120;
+  const h = 30 + Math.random() * 30;
+  c.style.cssText = `
+    width:${w}px; height:${h}px;
+    top:${5 + Math.random() * 25}%;
+    left:-${w + 20}px;
+    animation-duration:${20 + Math.random() * 30}s;
+    animation-delay:${Math.random() * -30}s;
+    opacity:${0.6 + Math.random() * 0.3};
+  `;
+  c.before = document.createElement('div');
+  document.body.appendChild(c);
+}
+
+for (let i = 0; i < 5; i++) makeCloud();
+
+// ── GRASS ──
+const grassEmoji = ['🌿','🌱','🍀','🌾'];
+for (let i = 0; i < 18; i++) {
+  const g = document.createElement('div');
+  g.className = 'grass-blade';
+  g.textContent = grassEmoji[Math.floor(Math.random() * grassEmoji.length)];
+  g.style.left = (i * 6 + Math.random() * 4) + 'vw';
+  g.style.fontSize = (1.2 + Math.random() * 1.5) + 'rem';
+  document.body.appendChild(g);
+}
+
+// ── SPIDER position ──
+document.getElementById('spider').style.top = '10%';
+
+// ── BUILD CHAINS ──
+function buildChains() {
+  ['chainLeft','chainRight'].forEach(id => {
+    const c = document.getElementById(id);
+    c.innerHTML = '';
+    const linkCount = 10;
+    for (let i = 0; i < linkCount; i++) {
+      const link = document.createElement('div');
+      link.className = 'chain-link';
+      c.appendChild(link);
+    }
+  });
+}
+
+// ── INIT ──
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+buildChains();
+renderElephants();
+
+// Animate web redraw for sway
+function animLoop() {
+  if (!broken) drawWeb();
+  requestAnimationFrame(animLoop);
+}
+animLoop();
+</script>
+
+</body>
+</html>
